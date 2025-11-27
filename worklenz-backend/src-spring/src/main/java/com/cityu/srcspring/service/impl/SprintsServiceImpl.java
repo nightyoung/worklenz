@@ -36,6 +36,8 @@ public class SprintsServiceImpl implements SprintsService {
     @Autowired
     private TasksMapper taskMapper;
 
+
+
   @Transactional
   @Override
   public boolean delete(Integer id) {
@@ -56,86 +58,39 @@ public class SprintsServiceImpl implements SprintsService {
     }
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-  @Override
-  public SprintDTO get(Integer id) {
-    Sprints sprint = sprintsMapper.selectById(id);
-    if (sprint == null) return null;
-
-    SprintDTO dto = new SprintDTO();
-    BeanUtils.copyProperties(sprint, dto);
-
-    // ⚙️ JSON 转换器
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-    // 🧩 反序列化 JSONB -> List<TaskVO>
-    if (sprint.getSubtask() != null && !sprint.getSubtask().isEmpty()) {
-      try {
-        List<TaskVO> tasks = objectMapper.readValue(
-          sprint.getSubtask(),
-          objectMapper.getTypeFactory().constructCollectionType(List.class, TaskVO.class)
-        );
-        dto.setSubtask(tasks);
-      } catch (Exception e) {
-        e.printStackTrace();
-        dto.setSubtask(Collections.emptyList());
-      }
-    } else {
-      dto.setSubtask(Collections.emptyList());
-    }
-
-    // 🏗️ 关联 project 名称
-    Projects project = projectsMapper.selectById(sprint.getProjectId());
-    dto.setProjectName(project != null ? project.getName() : null);
-
-    return dto;
-  }
 
 
 
   @Override
   public Object page(int page, int size) {
+    // 1️⃣ 分页查询 Sprint
     Page<Sprints> sprintPage = sprintsMapper.selectPage(new Page<>(page, size), null);
 
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.registerModule(new JavaTimeModule());
-    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
+    // 2️⃣ 遍历每个 Sprint，构建 DTO
     List<SprintDTO> result = sprintPage.getRecords().stream().map(sprint -> {
       SprintDTO dto = new SprintDTO();
       BeanUtils.copyProperties(sprint, dto);
 
-      // ⚙️ JSONB -> List<TaskVO>
-      if (sprint.getSubtask() != null && !sprint.getSubtask().isEmpty()) {
-        try {
-          List<TaskVO> tasks = objectMapper.readValue(
-            sprint.getSubtask(),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, TaskVO.class)
-          );
-          dto.setSubtask(tasks);
-        } catch (Exception e) {
-          e.printStackTrace();
-          dto.setSubtask(Collections.emptyList());
-        }
-      } else {
-        dto.setSubtask(Collections.emptyList());
-      }
+      // 3️⃣ 直接通过 Mapper 查询任务列表
+      List<TaskVO> tasks = taskMapper.selectTaskVOBySprintId(sprint.getId());
+      dto.setSubtask(tasks != null ? tasks : Collections.emptyList());
 
-      // 🏗️ 关联 project 名称
-      Projects project = projectsMapper.selectById(sprint.getProjectId());
-      dto.setProjectName(project != null ? project.getName() : null);
+      // 4️⃣ 关联 project 名称
+      if (dto.getProjectId() != null) {
+        Projects project = projectsMapper.selectById(dto.getProjectId());
+        dto.setProjectName(project != null ? project.getName() : null);
+      }
 
       return dto;
     }).collect(Collectors.toList());
 
+    // 5️⃣ 构建分页结果
     Map<String, Object> pageResult = new HashMap<>();
     pageResult.put("total", sprintPage.getTotal());
     pageResult.put("records", result);
 
     return pageResult;
   }
-
 
 
     @Override
@@ -160,6 +115,33 @@ public class SprintsServiceImpl implements SprintsService {
   public Sprints get1(Integer id) {
     return sprintsMapper.selectById(id);
   }
+
+
+  @Override
+  public SprintDTO get(Integer id) {
+    Sprints sprint = sprintsMapper.selectById(id);
+    if (sprint == null) return null;
+
+    SprintDTO dto = new SprintDTO();
+    BeanUtils.copyProperties(sprint, dto);
+
+    // 🧩 直接通过 Mapper 查询任务及关联字段
+    List<TaskVO> tasks = taskMapper.selectTaskVOBySprintId(sprint.getId());
+    dto.setSubtask(tasks);
+
+    // 🏗️ 关联 project 名称（如果没有在 Mapper 查询）
+    if (dto.getProjectId() != null && dto.getProjectName() == null) {
+      dto.setProjectName(taskMapper.selectProjectNameById(dto.getProjectId()));
+    }
+
+    return dto;
+  }
+
+
+
+
+
+
 
 
 }

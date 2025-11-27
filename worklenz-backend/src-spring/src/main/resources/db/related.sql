@@ -119,3 +119,5 @@ DO $$
                 ALTER COLUMN subtask TYPE jsonb USING subtask::jsonb;
         END IF;
     END $$;
+ALTER TABLE tasks
+    DROP CONSTRAINT tasks_sort_order_unique;

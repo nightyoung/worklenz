@@ -1,6 +1,7 @@
 package com.cityu.srcspring.model.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,9 +33,13 @@ public class Tasks {
 
     private Boolean archived;
 
-    private Long taskNo;
+  @TableField("task_no")
+  @JsonProperty("task_no")
+  private Long taskNo;
 
-    private OffsetDateTime startDate;
+
+
+  private OffsetDateTime startDate;
 
     private OffsetDateTime endDate;
 

@@ -3,11 +3,12 @@ package com.cityu.srcspring.service;
 import com.cityu.srcspring.model.dto.TaskCreateDTO;
 import com.cityu.srcspring.model.vo.TaskVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface TasksService {
+public interface TasksService1 {
     TaskVO createTask(TaskCreateDTO dto);
     TaskVO getTaskById(UUID id);
     TaskVO updateTask(UUID id, TaskCreateDTO dto);
@@ -17,4 +18,6 @@ public interface TasksService {
     List<TaskVO> getTasksBySprintId(Integer sprintId);
 
     Boolean updateTaskbysprintId(UUID id, Integer sprintId) throws JsonProcessingException;
+
+  List<TaskVO> getAllTasks1(@RequestParam(required = false) UUID projectId);
 }

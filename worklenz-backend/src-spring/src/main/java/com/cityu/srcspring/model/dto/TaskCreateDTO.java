@@ -1,5 +1,6 @@
 package com.cityu.srcspring.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,9 +24,11 @@ public class TaskCreateDTO {
     private String startDate;
     private String endDate;
     private String progressMode;
+  @JsonProperty("task_no")   // 🔥 必须有这一行！
+  private Long taskNo;
 
 
-    // 可选的关联信息
+  // 可选的关联信息
     private List<String> assignees;
     private List<String> labels;
     private List<String> attachments;

@@ -2,7 +2,7 @@ package com.cityu.srcspring.controller;
 
 import com.cityu.srcspring.model.dto.TaskCreateDTO;
 import com.cityu.srcspring.model.vo.TaskVO;
-import com.cityu.srcspring.service.TasksService;
+import com.cityu.srcspring.service.TasksService1;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -12,10 +12,10 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/tasks")
-public class TasksController {
+public class TasksController1 {
 
     @Autowired
-    private TasksService tasksService;
+    private TasksService1 tasksService;
 
     // 创建任务
     @PostMapping("/create")
@@ -63,5 +63,11 @@ public class TasksController {
     public List<TaskVO> getTasksBySprint(@RequestParam Integer sprintId) {
         return tasksService.getTasksBySprintId(sprintId);
     }
+
+    //查询所有sprint_id为空的tasks
+   @GetMapping("/sprintnull")
+   public List<TaskVO> getTasksBySprintNull(@RequestParam(required = false) UUID projectId) {
+      return tasksService.getAllTasks1(null);
+   }
 
 }
